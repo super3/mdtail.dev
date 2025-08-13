@@ -9,6 +9,7 @@ A simple terminal app that displays and live-refreshes markdown files, similar t
 - 🎨 Clean bordered display
 - 🖥️ Full terminal width support
 - 👻 Hidden cursor for distraction-free viewing
+- ⌨️ Arrow key navigation for switching between multiple files
 - ⚡ Zero dependencies - pure Node.js
 
 ## Installation
@@ -21,24 +22,20 @@ npm install
 
 ## Usage
 
+### Quick Start
 ```bash
-npm start
+npm start                          # Watch TODO.md (default)
 ```
 
-This will display `todo.md` and auto-refresh whenever the file changes. Press `Ctrl+C` to exit.
-
-## Development
-
-For development with auto-restart on code changes:
-
+### Global Installation
 ```bash
-npm run dev
+npm link                           # Install mdtail command globally
+mdtail                             # Watch TODO.md
+mdtail README.md                   # Watch specific file
+mdtail *.md                        # Watch all markdown files with tabs
+mdtail TODO.md README.md           # Watch multiple specific files
 ```
 
-## Why mdtail.dev?
-
-Unlike more complex markdown viewers like Glow or mdv, mdtail.dev focuses on doing one thing well: displaying a markdown file with live updates. It's perfect for keeping your todo list, notes, or documentation visible while you work.
-
-## License
-
-MIT
+### Navigation
+- Use ← / → arrow keys to switch between tabs when watching multiple files
+- Press Ctrl+C to exit

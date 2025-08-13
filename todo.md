@@ -10,15 +10,18 @@ A simple terminal app that displays and live-refreshes markdown files.
 - [x] Graceful exit with Ctrl+C
 - [x] Full terminal width borders
 - [x] Hidden cursor for cleaner display
-- [x] Development mode with nodemon
+- [x] Support for multiple markdown files with tabs
+- [x] Arrow key navigation between tabs
 
 ## Next Steps
-- [ ] Add command-line arguments for different files
+- [x] Add command-line arguments for different files
 - [ ] Support for checking/unchecking items
 - [ ] Add new todo items from terminal
 - [ ] Color-coded output for completed/pending items
-- [ ] Support multiple todo files
+- [x] Support multiple todo files
 - [ ] Export to different formats
+- [ ] Add syntax highlighting for markdown
+- [ ] Support for watching directories recursively
 
 ## Technical Details
 - Built with Node.js

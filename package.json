@@ -1,18 +1,17 @@
 {
   "name": "mdtail.dev",
   "version": "1.0.0",
-  "description": "",
+  "description": "Terminal markdown viewer with live refresh - watch and display multiple markdown files",
   "main": "index.js",
+  "bin": {
+    "mdtail": "./index.js"
+  },
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
-  "devDependencies": {
-    "nodemon": "^3.1.10"
-  }
+  "type": "commonjs"
 }
