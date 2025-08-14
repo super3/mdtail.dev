@@ -1,0 +1,38 @@
+# Test files
+test/
+*.test.js
+jest.config.js
+coverage/
+
+# Development files
+.github/
+.gitignore
+.editorconfig
+.eslintrc
+.prettierrc
+.claude/
+
+# Documentation files (keep README.md)
+TODO.md
+CONTRIBUTING.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment files
+.env
+.env.*
+
+# Git files
+.git/
+.gitattributes

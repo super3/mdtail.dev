@@ -1,5 +1,5 @@
 {
-  "name": "mdtail.dev",
+  "name": "mdtail",
   "version": "1.0.0",
   "description": "A simple terminal app that displays and live-refreshes markdown files.",
   "main": "index.js",
@@ -12,10 +12,30 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "markdown",
+    "terminal",
+    "cli",
+    "live-reload",
+    "file-watcher",
+    "markdown-viewer",
+    "developer-tools",
+    "documentation"
+  ],
+  "author": "Shawn Wilkinson",
+  "license": "MIT",
   "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/super3/mdtail.dev.git"
+  },
+  "bugs": {
+    "url": "https://github.com/super3/mdtail.dev/issues"
+  },
+  "homepage": "https://github.com/super3/mdtail.dev#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "devDependencies": {
     "jest": "^30.0.5"
   }
