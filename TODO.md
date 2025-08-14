@@ -26,9 +26,9 @@
 - [x] Add proper TypeScript definitions (index.d.ts)
 
 ### Improved Error Handling
-- [ ] Create custom error classes (FileNotFoundError, InvalidMarkdownError)
-- [ ] Implement graceful degradation for missing terminal features
-- [ ] Better error messages with suggestions for fixes
+- [x] Create custom error classes (FileNotFoundError, InvalidMarkdownError)
+- [x] Implement graceful degradation for missing terminal features
+- [x] Better error messages with suggestions for fixes
 
 ### Enhanced CLI & Display
 - [ ] Add chalk library for colored output

@@ -69,13 +69,30 @@ describe('MdTail - Integration Tests', () => {
     });
 
     test('should handle file read errors', async () => {
+      const { FileReadError } = require('../lib/errors');
       mdtail.files = ['/error.md'];
       mdtail.currentTabIndex = 0;
-      mdtail.fileManager.readFile = jest.fn().mockRejectedValue(new Error('File not found'));
+      const originalError = new Error('File not found');
+      mdtail.fileManager.readFile = jest.fn().mockRejectedValue(
+        new FileReadError('/error.md', originalError)
+      );
       
       await mdtail.displayCurrentFile();
       
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Error reading /error.md:', 'File not found');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('FileReadError'));
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unable to read file'));
+    });
+
+    test('should handle non-FileReadError errors', async () => {
+      mdtail.files = ['/error.md'];
+      mdtail.currentTabIndex = 0;
+      mdtail.fileManager.readFile = jest.fn().mockRejectedValue(
+        new Error('Generic error')
+      );
+      
+      await mdtail.displayCurrentFile();
+      
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error reading /error.md:', 'Generic error');
     });
   });
 
@@ -162,6 +179,18 @@ describe('MdTail - Integration Tests', () => {
       
       expect(mdtail.currentTabIndex).toBe(1);
       expect(mdtail.displayCurrentFile).toHaveBeenCalled();
+    });
+
+    test('should handle keyboard setup errors gracefully', () => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      process.stdin.setRawMode = jest.fn(() => {
+        throw new Error('Cannot set raw mode');
+      });
+      
+      mdtail.setupKeyboardNavigation();
+      
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Keyboard navigation unavailable in this environment');
+      consoleWarnSpy.mockRestore();
     });
   });
 
@@ -253,6 +282,21 @@ describe('MdTail - Integration Tests', () => {
       expect(mdtail.display.showCursor).toHaveBeenCalled();
       expect(mdtail.stopWatching).toHaveBeenCalled();
     });
+
+    test('should handle setRawMode errors gracefully', async () => {
+      process.stdin.isTTY = true;
+      process.stdin.setRawMode = jest.fn(() => {
+        throw new Error('Cannot set raw mode');
+      });
+      mdtail.stopWatching = jest.fn();
+      mdtail.display.showCursor = jest.fn();
+      
+      await mdtail.cleanup();
+      
+      // Should not throw, continues with cleanup
+      expect(mdtail.display.showCursor).toHaveBeenCalled();
+      expect(mdtail.stopWatching).toHaveBeenCalled();
+    });
   });
 
   describe('stopWatching', () => {
@@ -281,7 +325,21 @@ describe('MdTail - Integration Tests', () => {
       
       await mdtail.run([]);
       
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Error: No markdown files found to watch');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('NoFilesFoundError'));
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('No markdown files found to watch'));
+      expect(consoleLogSpy).toHaveBeenCalledWith('Run "mdtail --help" for usage information');
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    test('should handle non-MdTailError errors', async () => {
+      mdtail.fileManager.expandFiles = jest.fn().mockResolvedValue([]);
+      mdtail.validateFiles = jest.fn(() => {
+        throw new Error('Generic validation error');
+      });
+      
+      await mdtail.run([]);
+      
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Generic validation error');
       expect(consoleLogSpy).toHaveBeenCalledWith('Run "mdtail --help" for usage information');
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });

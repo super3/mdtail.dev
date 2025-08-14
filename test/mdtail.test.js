@@ -271,13 +271,17 @@ describe('MdTail - Core Functionality', () => {
   describe('clearScreen, hideCursor, showCursor', () => {
     let consoleClearSpy;
     let stdoutWriteSpy;
+    let originalIsTTY;
 
     beforeEach(() => {
+      originalIsTTY = process.stdout.isTTY;
+      process.stdout.isTTY = true;
       consoleClearSpy = jest.spyOn(console, 'clear').mockImplementation();
       stdoutWriteSpy = jest.spyOn(process.stdout, 'write').mockImplementation();
     });
 
     afterEach(() => {
+      process.stdout.isTTY = originalIsTTY;
       consoleClearSpy.mockRestore();
       stdoutWriteSpy.mockRestore();
     });

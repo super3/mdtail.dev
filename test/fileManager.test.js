@@ -59,7 +59,8 @@ describe('FileManager', () => {
     test('should warn about non-markdown files', async () => {
       await fileManager.expandFiles(['test.txt'], mockDir);
       
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Warning: test.txt is not a markdown file');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('InvalidMarkdownError'));
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Not a markdown file: test.txt'));
     });
 
     test('should warn about missing files', async () => {
@@ -67,7 +68,8 @@ describe('FileManager', () => {
       
       await fileManager.expandFiles(['missing.md'], mockDir);
       
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Warning: missing.md not found');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('FileNotFoundError'));
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('File not found: missing.md'));
     });
 
     test('should remove duplicates', async () => {
@@ -83,7 +85,8 @@ describe('FileManager', () => {
       
       await fileManager.expandFiles(['*.md'], mockDir);
       
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Warning: Unable to read directory: Permission denied');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('DirectoryReadError'));
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unable to read directory'));
     });
   });
 
@@ -94,6 +97,12 @@ describe('FileManager', () => {
 
     test('should throw for empty array', () => {
       expect(() => fileManager.validateFiles([])).toThrow('No markdown files found to watch');
+      try {
+        fileManager.validateFiles([]);
+      } catch (error) {
+        expect(error.constructor.name).toBe('NoFilesFoundError');
+        expect(error.suggestion).toContain('mdtail README.md');
+      }
     });
 
     test('should throw for non-array', () => {
@@ -109,6 +118,21 @@ describe('FileManager', () => {
       
       expect(content).toBe('File content');
       expect(fs.readFile).toHaveBeenCalledWith('/test.md', 'utf8');
+    });
+
+    test('should throw FileReadError on failure', async () => {
+      const originalError = new Error('EACCES');
+      fs.readFile.mockRejectedValue(originalError);
+      
+      await expect(fileManager.readFile('/test.md')).rejects.toThrow('Unable to read file');
+      
+      try {
+        await fileManager.readFile('/test.md');
+      } catch (error) {
+        expect(error.constructor.name).toBe('FileReadError');
+        expect(error.filePath).toBe('/test.md');
+        expect(error.originalError).toBe(originalError);
+      }
     });
   });
 
