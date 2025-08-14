@@ -1,6 +1,6 @@
 # mdtail.dev
 
-A simple terminal app that displays and live-refreshes markdown files, similar to `tail -f` but for rendered markdown.
+A simple terminal app that displays and live-refreshes markdown files.
 
 ## Features
 
@@ -15,14 +15,13 @@ A simple terminal app that displays and live-refreshes markdown files, similar t
 ## Installation
 
 ```bash
-git clone https://github.com/super3/mdtail.dev.git
-cd mdtail.dev
+git clone https://github.com/super3/mdtail.dev.git && cd mdtail.dev
 npm install
 ```
 
 ## Usage
 
-### Quick Start
+### Local
 ```bash
 npm start                          # Watch TODO.md (default)
 ```

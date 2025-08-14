@@ -22,9 +22,3 @@ A simple terminal app that displays and live-refreshes markdown files.
 - [ ] Export to different formats
 - [ ] Add syntax highlighting for markdown
 - [ ] Support for watching directories recursively
-
-## Technical Details
-- Built with Node.js
-- Uses fs.watchFile for live updates
-- No external dependencies
-- Refreshes every 100ms when changes detected

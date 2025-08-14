@@ -1,7 +1,7 @@
 {
   "name": "mdtail.dev",
   "version": "1.0.0",
-  "description": "Terminal markdown viewer with live refresh - watch and display multiple markdown files",
+  "description": "A simple terminal app that displays and live-refreshes markdown files.",
   "main": "index.js",
   "bin": {
     "mdtail": "./index.js"
