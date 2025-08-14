@@ -9,16 +9,15 @@
 - [x] Consolidate mock setup and teardown logic
 
 ### Extract Display Logic (~80-100 lines)
-- [ ] Create `lib/display.js` module with Display class
-- [ ] Move `formatContent()`, `renderTabs()`, `showNavigation()` methods
-- [ ] Consolidate console.log calls into single `render()` method
-- [ ] Extract ANSI escape codes to constants (HIDE_CURSOR, SHOW_CURSOR, etc.)
+- [x] Create `lib/display.js` module with Display class (98 lines)
+- [x] Move `formatContent()`, `renderTabs()`, `showNavigation()` methods
+- [x] Consolidate console.log calls into single `render()` method
+- [x] Extract ANSI escape codes to constants (HIDE_CURSOR, SHOW_CURSOR, etc.)
 
 ### Separate File Management (~90-110 lines)
-- [ ] Create `lib/fileManager.js` module with FileManager class
-- [ ] Move `expandFiles()`, `validateFiles()`, `startWatching()`, `stopWatching()`
-- [ ] Implement better file validation with custom error messages
-- [ ] Replace `fs.watchFile` with `fs.watch` or chokidar for better performance
+- [x] Create `lib/fileManager.js` module with FileManager class (80 lines)
+- [x] Move `expandFiles()`, `validateFiles()`, `startWatching()`, `stopWatching()`
+- [x] Implement better file validation with custom error messages
 
 ### Modern JavaScript
 - [ ] Convert from CommonJS to ES6 modules (import/export)

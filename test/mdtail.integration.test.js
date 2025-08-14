@@ -48,33 +48,30 @@ describe('MdTail - Integration Tests', () => {
     test('should display single file without tabs', () => {
       mdtail.files = ['/test/file.md'];
       mdtail.currentTabIndex = 0;
-      fs.readFileSync.mockReturnValue('# Test Content');
+      mdtail.fileManager.readFile = jest.fn().mockReturnValue('# Test Content');
+      mdtail.display.render = jest.fn();
       
       mdtail.displayCurrentFile();
       
-      expect(consoleClearSpy).toHaveBeenCalled();
-      expect(stdoutWriteSpy).toHaveBeenCalledWith('\x1B[?25l'); // Hide cursor
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('FILE.MD'));
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('# Test Content'));
-      expect(consoleLogSpy).toHaveBeenCalledWith('Watching for changes... (Ctrl+C to exit)');
+      expect(mdtail.fileManager.readFile).toHaveBeenCalledWith('/test/file.md');
+      expect(mdtail.display.render).toHaveBeenCalledWith('# Test Content', 'file.md', mdtail.files, 0);
     });
 
     test('should display multiple files with tabs', () => {
       mdtail.files = ['/file1.md', '/file2.md'];
       mdtail.currentTabIndex = 0;
-      fs.readFileSync.mockReturnValue('Content 1');
+      mdtail.fileManager.readFile = jest.fn().mockReturnValue('Content 1');
+      mdtail.display.render = jest.fn();
       
       mdtail.displayCurrentFile();
       
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('[file1.md]'));
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(' file2.md '));
-      expect(consoleLogSpy).toHaveBeenCalledWith('Tab 1 of 2 │ ← → Navigate │ Ctrl+C Exit');
+      expect(mdtail.display.render).toHaveBeenCalledWith('Content 1', 'file1.md', mdtail.files, 0);
     });
 
     test('should handle file read errors', () => {
       mdtail.files = ['/error.md'];
       mdtail.currentTabIndex = 0;
-      fs.readFileSync.mockImplementation(() => {
+      mdtail.fileManager.readFile = jest.fn().mockImplementation(() => {
         throw new Error('File not found');
       });
       
@@ -175,24 +172,25 @@ describe('MdTail - Integration Tests', () => {
       mdtail.files = ['/single.md'];
       mdtail.setupKeyboardNavigation = jest.fn();
       mdtail.displayCurrentFile = jest.fn();
-      fs.watchFile = jest.fn();
+      mdtail.fileManager.startWatching = jest.fn();
       
       mdtail.startWatching();
       
       expect(mdtail.setupKeyboardNavigation).toHaveBeenCalled();
       expect(mdtail.displayCurrentFile).toHaveBeenCalled();
-      expect(fs.watchFile).toHaveBeenCalledWith('/single.md', { interval: 100 }, expect.any(Function));
+      expect(mdtail.fileManager.startWatching).toHaveBeenCalledWith(mdtail.files, expect.any(Function));
     });
 
     test('should show file list for multiple files', () => {
       mdtail.files = ['/file1.md', '/file2.md'];
       mdtail.setupKeyboardNavigation = jest.fn();
       mdtail.displayCurrentFile = jest.fn();
-      fs.watchFile = jest.fn();
+      mdtail.fileManager.startWatching = jest.fn();
+      mdtail.display.showFileList = jest.fn();
       
       mdtail.startWatching();
       
-      expect(consoleLogSpy).toHaveBeenCalledWith('\nWatching 2 files. Use arrow keys to navigate.');
+      expect(mdtail.display.showFileList).toHaveBeenCalledWith(2);
       
       // Fast-forward timer to trigger delayed display
       jest.advanceTimersByTime(1500);
@@ -205,20 +203,16 @@ describe('MdTail - Integration Tests', () => {
       mdtail.currentTabIndex = 0;
       mdtail.displayCurrentFile = jest.fn();
       
-      let watchCallback;
-      fs.watchFile = jest.fn((file, options, callback) => {
-        if (file === '/file1.md') {
-          watchCallback = callback;
-        }
+      let onChangeCallback;
+      mdtail.fileManager.startWatching = jest.fn((files, callback) => {
+        onChangeCallback = callback;
       });
       
       mdtail.startWatching();
       mdtail.displayCurrentFile.mockClear();
       
-      // Simulate file change
-      const curr = { mtime: new Date('2024-01-02') };
-      const prev = { mtime: new Date('2024-01-01') };
-      watchCallback(curr, prev);
+      // Simulate file change for current tab
+      onChangeCallback(0);
       
       expect(mdtail.displayCurrentFile).toHaveBeenCalled();
     });
@@ -228,11 +222,12 @@ describe('MdTail - Integration Tests', () => {
     test('should reset terminal and stop watching', () => {
       mdtail.files = ['/file1.md', '/file2.md'];
       mdtail.stopWatching = jest.fn();
+      mdtail.display.showCursor = jest.fn();
       
       mdtail.cleanup();
       
       expect(process.stdin.setRawMode).toHaveBeenCalledWith(false);
-      expect(stdoutWriteSpy).toHaveBeenCalledWith('\x1B[?25h'); // Show cursor
+      expect(mdtail.display.showCursor).toHaveBeenCalled();
       expect(consoleLogSpy).toHaveBeenCalledWith('\n\nStopping mdtail...');
       expect(mdtail.stopWatching).toHaveBeenCalled();
     });
@@ -240,11 +235,12 @@ describe('MdTail - Integration Tests', () => {
     test('should handle non-TTY mode', () => {
       process.stdin.isTTY = false;
       mdtail.stopWatching = jest.fn();
+      mdtail.display.showCursor = jest.fn();
       
       mdtail.cleanup();
       
       expect(process.stdin.setRawMode).not.toHaveBeenCalled();
-      expect(stdoutWriteSpy).toHaveBeenCalledWith('\x1B[?25h');
+      expect(mdtail.display.showCursor).toHaveBeenCalled();
       expect(mdtail.stopWatching).toHaveBeenCalled();
     });
   });
@@ -252,14 +248,11 @@ describe('MdTail - Integration Tests', () => {
   describe('stopWatching', () => {
     test('should unwatch all files', () => {
       mdtail.files = ['/file1.md', '/file2.md', '/file3.md'];
-      fs.unwatchFile = jest.fn();
+      mdtail.fileManager.stopWatching = jest.fn();
       
       mdtail.stopWatching();
       
-      expect(fs.unwatchFile).toHaveBeenCalledTimes(3);
-      expect(fs.unwatchFile).toHaveBeenCalledWith('/file1.md');
-      expect(fs.unwatchFile).toHaveBeenCalledWith('/file2.md');
-      expect(fs.unwatchFile).toHaveBeenCalledWith('/file3.md');
+      expect(mdtail.fileManager.stopWatching).toHaveBeenCalledWith(mdtail.files);
     });
   });
 
