@@ -6,4 +6,7 @@ const MdTail = require('./lib/mdtail');
 const mdtail = new MdTail();
 const args = process.argv.slice(2);
 
-mdtail.run(args);
+// Run async
+(async () => {
+  await mdtail.run(args);
+})();

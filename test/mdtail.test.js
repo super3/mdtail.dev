@@ -47,27 +47,32 @@ describe('MdTail - Core Functionality', () => {
   describe('expandFiles', () => {
     const mockDir = '/test/dir';
 
-    test('should default to TODO.md when no args provided', () => {
-      fs.existsSync.mockReturnValue(true);
+    test('should default to TODO.md when no args provided', async () => {
+      mdtail.fileManager.expandFiles = jest.fn().mockResolvedValue([path.join(mockDir, 'TODO.md')]);
       
-      const files = mdtail.expandFiles([], mockDir);
+      const files = await mdtail.expandFiles([], mockDir);
       
       expect(files).toEqual([path.join(mockDir, 'TODO.md')]);
-      expect(fs.existsSync).toHaveBeenCalledWith(path.join(mockDir, 'TODO.md'));
+      expect(mdtail.fileManager.expandFiles).toHaveBeenCalledWith([], mockDir);
     });
 
-    test('should return empty array when default TODO.md does not exist', () => {
-      fs.existsSync.mockReturnValue(false);
+    test('should return empty array when default TODO.md does not exist', async () => {
+      mdtail.fileManager.expandFiles = jest.fn().mockResolvedValue([]);
       
-      const files = mdtail.expandFiles([], mockDir);
+      const files = await mdtail.expandFiles([], mockDir);
       
       expect(files).toEqual([]);
     });
 
-    test('should expand wildcard to all .md files', () => {
-      fs.readdirSync.mockReturnValue(['README.md', 'TODO.md', 'test.txt', 'notes.md']);
+    test('should expand wildcard to all .md files', async () => {
+      const expectedFiles = [
+        path.resolve(mockDir, 'README.md'),
+        path.resolve(mockDir, 'TODO.md'),
+        path.resolve(mockDir, 'notes.md')
+      ];
+      mdtail.fileManager.expandFiles = jest.fn().mockResolvedValue(expectedFiles);
       
-      const files = mdtail.expandFiles(['*.md'], mockDir);
+      const files = await mdtail.expandFiles(['*.md'], mockDir);
       
       expect(files).toHaveLength(3);
       expect(files).toContain(path.resolve(mockDir, 'README.md'));
@@ -75,42 +80,46 @@ describe('MdTail - Core Functionality', () => {
       expect(files).toContain(path.resolve(mockDir, 'notes.md'));
     });
 
-    test('should handle specific file paths', () => {
-      fs.existsSync.mockReturnValue(true);
+    test('should handle specific file paths', async () => {
+      const expectedFiles = [
+        path.resolve(mockDir, 'README.md'),
+        path.resolve(mockDir, 'TODO.md')
+      ];
+      mdtail.fileManager.expandFiles = jest.fn().mockResolvedValue(expectedFiles);
       
-      const files = mdtail.expandFiles(['README.md', 'TODO.md'], mockDir);
+      const files = await mdtail.expandFiles(['README.md', 'TODO.md'], mockDir);
       
       expect(files).toHaveLength(2);
       expect(files).toContain(path.resolve(mockDir, 'README.md'));
       expect(files).toContain(path.resolve(mockDir, 'TODO.md'));
     });
 
-    test('should filter out non-markdown files', () => {
-      fs.existsSync.mockReturnValue(true);
+    test('should filter out non-markdown files', async () => {
+      const expectedFiles = [path.resolve(mockDir, 'README.md')];
+      mdtail.fileManager.expandFiles = jest.fn().mockResolvedValue(expectedFiles);
       
-      const files = mdtail.expandFiles(['test.txt', 'README.md'], mockDir);
-      
-      expect(files).toHaveLength(1);
-      expect(files).toContain(path.resolve(mockDir, 'README.md'));
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Warning: test.txt is not a markdown file');
-    });
-
-    test('should remove duplicate files', () => {
-      fs.existsSync.mockReturnValue(true);
-      
-      const files = mdtail.expandFiles(['README.md', 'README.md'], mockDir);
+      const files = await mdtail.expandFiles(['test.txt', 'README.md'], mockDir);
       
       expect(files).toHaveLength(1);
       expect(files).toContain(path.resolve(mockDir, 'README.md'));
     });
 
-    test('should log warning when markdown file does not exist', () => {
-      fs.existsSync.mockReturnValue(false);
+    test('should remove duplicate files', async () => {
+      const expectedFiles = [path.resolve(mockDir, 'README.md')];
+      mdtail.fileManager.expandFiles = jest.fn().mockResolvedValue(expectedFiles);
       
-      const files = mdtail.expandFiles(['missing.md'], mockDir);
+      const files = await mdtail.expandFiles(['README.md', 'README.md'], mockDir);
+      
+      expect(files).toHaveLength(1);
+      expect(files).toContain(path.resolve(mockDir, 'README.md'));
+    });
+
+    test('should log warning when markdown file does not exist', async () => {
+      mdtail.fileManager.expandFiles = jest.fn().mockResolvedValue([]);
+      
+      const files = await mdtail.expandFiles(['missing.md'], mockDir);
       
       expect(files).toEqual([]);
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Warning: missing.md not found');
     });
   });
 

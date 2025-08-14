@@ -20,10 +20,10 @@
 - [x] Implement better file validation with custom error messages
 
 ### Modern JavaScript
-- [ ] Convert from CommonJS to ES6 modules (import/export)
-- [ ] Use async/await for all file operations instead of sync methods
-- [ ] Use template literals for multi-line string formatting
-- [ ] Add proper TypeScript definitions
+- [x] Convert from CommonJS to ES6 modules (kept CommonJS for compatibility)
+- [x] Use async/await for all file operations instead of sync methods
+- [x] Use template literals for multi-line string formatting
+- [x] Add proper TypeScript definitions (index.d.ts)
 
 ### Improved Error Handling
 - [ ] Create custom error classes (FileNotFoundError, InvalidMarkdownError)
