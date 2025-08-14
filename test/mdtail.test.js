@@ -272,16 +272,20 @@ describe('MdTail - Core Functionality', () => {
     let consoleClearSpy;
     let stdoutWriteSpy;
     let originalIsTTY;
+    let originalTerm;
 
     beforeEach(() => {
       originalIsTTY = process.stdout.isTTY;
+      originalTerm = process.env.TERM;
       process.stdout.isTTY = true;
+      process.env.TERM = 'xterm'; // Ensure ANSI support
       consoleClearSpy = jest.spyOn(console, 'clear').mockImplementation();
       stdoutWriteSpy = jest.spyOn(process.stdout, 'write').mockImplementation();
     });
 
     afterEach(() => {
       process.stdout.isTTY = originalIsTTY;
+      process.env.TERM = originalTerm;
       consoleClearSpy.mockRestore();
       stdoutWriteSpy.mockRestore();
     });
@@ -292,12 +296,16 @@ describe('MdTail - Core Functionality', () => {
     });
 
     test('should hide cursor', () => {
-      mdtail.hideCursor();
+      // Create a new instance after setting TTY
+      const mdtailWithTTY = new MdTail();
+      mdtailWithTTY.hideCursor();
       expect(stdoutWriteSpy).toHaveBeenCalledWith('\x1B[?25l');
     });
 
     test('should show cursor', () => {
-      mdtail.showCursor();
+      // Create a new instance after setting TTY
+      const mdtailWithTTY = new MdTail();
+      mdtailWithTTY.showCursor();
       expect(stdoutWriteSpy).toHaveBeenCalledWith('\x1B[?25h');
     });
   });
