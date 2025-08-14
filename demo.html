@@ -356,17 +356,138 @@ A simple demo application showcasing mdtail functionality.
 
 <span class="border"></span>
 <div class="navigation">Tab 2 of 2 │ ← → Navigate │ Ctrl+C Exit</div>`;
+                
+                // Simulate live update when Claude edits TODO.md
+                // This happens after Claude shows "✓ Updated TODO.md" 
+                // Timing: 10s wait + typing + response + tests = ~14s total
+                setTimeout(() => {
+                    // Flash effect to show file changed
+                    mdtailOutput.style.opacity = '0.7';
+                    setTimeout(() => {
+                        mdtailOutput.style.opacity = '1';
+                        mdtailOutput.innerHTML = `
+<span class="border"></span>
+<div style="color: #d4d4d4; padding: 2px 0;">
+  README.md │ <span style="font-weight: bold; color: #fff;">[TODO.md]</span>
+</div>
+<span class="divider"></span>
+
+<div class="content" id="mdtail-content"># TODO List
+
+## This Week
+- [x] Setup project
+- [x] Write documentation
+- [x] Add tests
+- [ ] Deploy to production
+
+## Next Sprint
+- [ ] User authentication
+- [ ] API integration
+- [ ] Performance optimization</div>
+
+<span class="border"></span>
+<div class="navigation" style="color: #27c93f;">File updated • Tab 2 of 2 │ ← → Navigate │ Ctrl+C Exit</div>`;
+                    }, 100);
+                }, 11000); // Update TODO.md after Claude shows "✓ Updated TODO.md" message
             }, 3000);
         }
 
         async function runLeftPane() {
             const container = document.getElementById('left-content');
             
-            // Just show a prompt with cursor
-            const prompt = document.createElement('span');
-            prompt.className = 'prompt';
-            prompt.innerHTML = '$ ';
-            container.appendChild(prompt);
+            // Show previous Claude command already executed
+            const prevPrompt = document.createElement('span');
+            prevPrompt.className = 'prompt';
+            prevPrompt.innerHTML = '$ ';
+            container.appendChild(prevPrompt);
+            
+            const prevCmd = document.createElement('span');
+            prevCmd.className = 'command';
+            prevCmd.textContent = 'claude';
+            container.appendChild(prevCmd);
+            container.appendChild(document.createTextNode('\n'));
+            
+            // Claude welcome message
+            const welcomeMsg = document.createElement('div');
+            welcomeMsg.style.color = '#569cd6';
+            welcomeMsg.innerHTML = 'Claude Code v1.0.1\n';
+            container.appendChild(welcomeMsg);
+            
+            const sessionMsg = document.createElement('div');
+            sessionMsg.style.color = '#888';
+            sessionMsg.innerHTML = 'Starting new session...\n\n';
+            container.appendChild(sessionMsg);
+            
+            // Show Claude prompt
+            const claudePrompt = document.createElement('span');
+            claudePrompt.style.color = '#764ba2';
+            claudePrompt.innerHTML = '🤖 ';
+            container.appendChild(claudePrompt);
+            
+            const cursor1 = document.createElement('span');
+            cursor1.className = 'cursor';
+            container.appendChild(cursor1);
+            
+            // Wait for mdtail to start and switch to TODO.md
+            // Initial: 0.5s + npm typing: 1.3s + wait: 0.5s + npm output wait: 1s + 
+            // mdtail typing: 0.7s + wait: 0.5s + switch to TODO: 3s = ~7.5s
+            // Adding buffer to ensure TODO.md is fully displayed
+            await new Promise(r => setTimeout(r, 10000));
+            
+            // Remove cursor and type claude command
+            cursor1.remove();
+            const claudeCmd = document.createElement('span');
+            claudeCmd.className = 'command';
+            container.appendChild(claudeCmd);
+            await typeText('add tests for the new feature and update TODO.md', claudeCmd, 50);
+            
+            await new Promise(r => setTimeout(r, 500));
+            container.appendChild(document.createTextNode('\n\n'));
+            
+            // Claude response
+            const claudeOutput = document.createElement('div');
+            claudeOutput.className = 'output';
+            claudeOutput.style.color = '#d4d4d4';
+            claudeOutput.innerHTML = 'I\'ll add tests for the new feature and update the TODO list.\n\n';
+            container.appendChild(claudeOutput);
+            
+            await new Promise(r => setTimeout(r, 1000));
+            
+            // Show creating test file
+            const createTest = document.createElement('div');
+            createTest.style.color = '#608b4e';
+            createTest.innerHTML = '✓ Created test/feature.test.js\n\n';
+            container.appendChild(createTest);
+            
+            await new Promise(r => setTimeout(r, 500));
+            
+            // Running tests
+            const runningTests = document.createElement('div');
+            runningTests.style.color = '#888';
+            runningTests.innerHTML = 'Running tests...\n';
+            container.appendChild(runningTests);
+            
+            await new Promise(r => setTimeout(r, 1500));
+            
+            // Test results
+            const testResults = document.createElement('div');
+            testResults.style.color = '#27c93f';
+            testResults.innerHTML = 'PASS test/feature.test.js\n✓ 15 tests passed\n\n';
+            container.appendChild(testResults);
+            
+            await new Promise(r => setTimeout(r, 500));
+            
+            // Update TODO.md after tests pass
+            const updateTodo = document.createElement('div');
+            updateTodo.style.color = '#608b4e';
+            updateTodo.innerHTML = '✓ Updated TODO.md\n\n';
+            container.appendChild(updateTodo);
+            
+            // New Claude prompt
+            const claudePrompt2 = document.createElement('span');
+            claudePrompt2.style.color = '#764ba2';
+            claudePrompt2.innerHTML = '🤖 ';
+            container.appendChild(claudePrompt2);
             
             // Add blinking cursor
             const cursor = document.createElement('span');
