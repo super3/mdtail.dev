@@ -1,11 +1,11 @@
 # mdtail.dev
 
+A simple terminal app that displays and live-refreshes markdown files.
+
 [![npm version](https://badge.fury.io/js/mdtail.svg)](https://www.npmjs.com/package/mdtail)
-[![Test Status](https://img.shields.io/github/actions/workflow/status/super3/mdtail.dev/ci.yml?branch=main&label=tests)](https://github.com/super3/mdtail.dev/actions/workflows/ci.yml)
+[![Test Status](https://img.shields.io/github/actions/workflow/status/super3/mdtail.dev/test.yml?branch=main&label=tests)](https://github.com/super3/mdtail.dev/actions/workflows/test.yml)
 [![Coverage Status](https://coveralls.io/repos/github/super3/mdtail.dev/badge.svg?branch=main)](https://coveralls.io/github/super3/mdtail.dev?branch=main)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?label=license)](https://github.com/super3/mdtail.dev/blob/main/LICENSE)
-
-A simple terminal app that displays and live-refreshes markdown files.
 
 ## Features
 
@@ -27,8 +27,7 @@ npm install -g mdtail
 ### From Source
 ```bash
 git clone https://github.com/super3/mdtail.dev.git && cd mdtail.dev
-npm install
-npm link                           # Install mdtail command globally
+npm install && npm link            # Install dependencies and mdtail command globally
 ```
 
 ## Usage
