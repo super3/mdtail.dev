@@ -6,95 +6,87 @@ const readline = require('readline');
 jest.mock('fs');
 jest.mock('readline');
 
-describe('MdTail - Full Coverage', () => {
+describe('MdTail - Integration Tests', () => {
   let mdtail;
   let consoleLogSpy;
-  let consoleErrorSpy;
   let consoleClearSpy;
-  let processExitSpy;
+  let consoleErrorSpy;
   let stdoutWriteSpy;
+  let processExitSpy;
 
   beforeEach(() => {
     mdtail = new MdTail();
     
     // Mock console methods
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
     consoleClearSpy = jest.spyOn(console, 'clear').mockImplementation();
-    
-    // Mock process methods
-    processExitSpy = jest.spyOn(process, 'exit').mockImplementation();
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
     stdoutWriteSpy = jest.spyOn(process.stdout, 'write').mockImplementation();
+    processExitSpy = jest.spyOn(process, 'exit').mockImplementation();
     
     // Mock process.stdin
     process.stdin.isTTY = true;
     process.stdin.setRawMode = jest.fn();
     process.stdin.resume = jest.fn();
     
-    // Reset mocks
     jest.clearAllMocks();
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
     consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
     consoleClearSpy.mockRestore();
-    processExitSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
     stdoutWriteSpy.mockRestore();
+    processExitSpy.mockRestore();
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useRealTimers();
   });
 
   describe('displayCurrentFile', () => {
-    beforeEach(() => {
-      mdtail.files = ['/test/file1.md', '/test/file2.md'];
-      mdtail.currentTabIndex = 0;
-      process.stdout.columns = 80;
-    });
-
     test('should display single file without tabs', () => {
-      mdtail.files = ['/test/single.md'];
+      mdtail.files = ['/test/file.md'];
+      mdtail.currentTabIndex = 0;
       fs.readFileSync.mockReturnValue('# Test Content');
       
       mdtail.displayCurrentFile();
       
       expect(consoleClearSpy).toHaveBeenCalled();
       expect(stdoutWriteSpy).toHaveBeenCalledWith('\x1B[?25l'); // Hide cursor
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('SINGLE.MD'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('FILE.MD'));
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('# Test Content'));
       expect(consoleLogSpy).toHaveBeenCalledWith('Watching for changes... (Ctrl+C to exit)');
     });
 
     test('should display multiple files with tabs', () => {
-      fs.readFileSync.mockReturnValue('# File 1 Content');
+      mdtail.files = ['/file1.md', '/file2.md'];
+      mdtail.currentTabIndex = 0;
+      fs.readFileSync.mockReturnValue('Content 1');
       
       mdtail.displayCurrentFile();
       
-      expect(consoleClearSpy).toHaveBeenCalled();
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('[file1.md]'));
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('file2.md'));
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Tab 1 of 2'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(' file2.md '));
+      expect(consoleLogSpy).toHaveBeenCalledWith('Tab 1 of 2 │ ← → Navigate │ Ctrl+C Exit');
     });
 
     test('should handle file read errors', () => {
+      mdtail.files = ['/error.md'];
+      mdtail.currentTabIndex = 0;
       fs.readFileSync.mockImplementation(() => {
         throw new Error('File not found');
       });
       
       mdtail.displayCurrentFile();
       
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error reading'),
-        'File not found'
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error reading /error.md:', 'File not found');
     });
   });
 
   describe('setupKeyboardNavigation', () => {
     test('should skip setup if not TTY', () => {
       process.stdin.isTTY = false;
-      readline.emitKeypressEvents = jest.fn();
       
       mdtail.setupKeyboardNavigation();
       
@@ -103,7 +95,6 @@ describe('MdTail - Full Coverage', () => {
     });
 
     test('should setup keyboard listeners if TTY', () => {
-      process.stdin.isTTY = true;
       process.stdin.on = jest.fn();
       readline.emitKeypressEvents = jest.fn();
       
@@ -116,16 +107,19 @@ describe('MdTail - Full Coverage', () => {
     });
 
     test('should handle Ctrl+C keypress', () => {
+      mdtail.cleanup = jest.fn();
+      let keypressCallback;
       process.stdin.on = jest.fn((event, callback) => {
         if (event === 'keypress') {
-          // Simulate Ctrl+C
-          callback('', { ctrl: true, name: 'c' });
+          keypressCallback = callback;
         }
       });
       readline.emitKeypressEvents = jest.fn();
-      mdtail.cleanup = jest.fn();
       
       mdtail.setupKeyboardNavigation();
+      
+      // Simulate Ctrl+C
+      keypressCallback('', { ctrl: true, name: 'c' });
       
       expect(mdtail.cleanup).toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(0);
@@ -136,14 +130,18 @@ describe('MdTail - Full Coverage', () => {
       mdtail.currentTabIndex = 1;
       mdtail.displayCurrentFile = jest.fn();
       
+      let keypressCallback;
       process.stdin.on = jest.fn((event, callback) => {
         if (event === 'keypress') {
-          callback('', { name: 'left' });
+          keypressCallback = callback;
         }
       });
       readline.emitKeypressEvents = jest.fn();
       
       mdtail.setupKeyboardNavigation();
+      
+      // Simulate left arrow
+      keypressCallback('', { name: 'left' });
       
       expect(mdtail.currentTabIndex).toBe(0);
       expect(mdtail.displayCurrentFile).toHaveBeenCalled();
@@ -154,14 +152,18 @@ describe('MdTail - Full Coverage', () => {
       mdtail.currentTabIndex = 0;
       mdtail.displayCurrentFile = jest.fn();
       
+      let keypressCallback;
       process.stdin.on = jest.fn((event, callback) => {
         if (event === 'keypress') {
-          callback('', { name: 'right' });
+          keypressCallback = callback;
         }
       });
       readline.emitKeypressEvents = jest.fn();
       
       mdtail.setupKeyboardNavigation();
+      
+      // Simulate right arrow
+      keypressCallback('', { name: 'right' });
       
       expect(mdtail.currentTabIndex).toBe(1);
       expect(mdtail.displayCurrentFile).toHaveBeenCalled();
@@ -170,8 +172,7 @@ describe('MdTail - Full Coverage', () => {
 
   describe('startWatching', () => {
     test('should setup watching for single file', () => {
-      jest.useFakeTimers();
-      mdtail.files = ['/test/file.md'];
+      mdtail.files = ['/single.md'];
       mdtail.setupKeyboardNavigation = jest.fn();
       mdtail.displayCurrentFile = jest.fn();
       fs.watchFile = jest.fn();
@@ -180,41 +181,34 @@ describe('MdTail - Full Coverage', () => {
       
       expect(mdtail.setupKeyboardNavigation).toHaveBeenCalled();
       expect(mdtail.displayCurrentFile).toHaveBeenCalled();
-      expect(fs.watchFile).toHaveBeenCalledWith(
-        '/test/file.md',
-        { interval: 100 },
-        expect.any(Function)
-      );
+      expect(fs.watchFile).toHaveBeenCalledWith('/single.md', { interval: 100 }, expect.any(Function));
     });
 
     test('should show file list for multiple files', () => {
-      mdtail.files = ['/test/file1.md', '/test/file2.md'];
+      mdtail.files = ['/file1.md', '/file2.md'];
       mdtail.setupKeyboardNavigation = jest.fn();
       mdtail.displayCurrentFile = jest.fn();
       fs.watchFile = jest.fn();
       
-      jest.useFakeTimers();
       mdtail.startWatching();
       
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Watching 2 files')
-      );
+      expect(consoleLogSpy).toHaveBeenCalledWith('\nWatching 2 files. Use arrow keys to navigate.');
       
+      // Fast-forward timer to trigger delayed display
       jest.advanceTimersByTime(1500);
-      expect(mdtail.displayCurrentFile).toHaveBeenCalledTimes(2); // Initial + after timeout
+      
+      expect(mdtail.displayCurrentFile).toHaveBeenCalledTimes(2); // Initial + delayed
     });
 
     test('should redraw on file change for current tab', () => {
-      jest.useFakeTimers();
-      mdtail.files = ['/test/file1.md', '/test/file2.md'];
+      mdtail.files = ['/file1.md', '/file2.md'];
       mdtail.currentTabIndex = 0;
       mdtail.displayCurrentFile = jest.fn();
-      mdtail.setupKeyboardNavigation = jest.fn();
       
-      let fileChangeCallback;
+      let watchCallback;
       fs.watchFile = jest.fn((file, options, callback) => {
-        if (file === '/test/file1.md') {
-          fileChangeCallback = callback;
+        if (file === '/file1.md') {
+          watchCallback = callback;
         }
       });
       
@@ -222,30 +216,17 @@ describe('MdTail - Full Coverage', () => {
       mdtail.displayCurrentFile.mockClear();
       
       // Simulate file change
-      fileChangeCallback(
-        { mtime: new Date('2024-01-02') },
-        { mtime: new Date('2024-01-01') }
-      );
+      const curr = { mtime: new Date('2024-01-02') };
+      const prev = { mtime: new Date('2024-01-01') };
+      watchCallback(curr, prev);
       
       expect(mdtail.displayCurrentFile).toHaveBeenCalled();
     });
   });
 
-  describe('stopWatching', () => {
-    test('should unwatch all files', () => {
-      mdtail.files = ['/test/file1.md', '/test/file2.md'];
-      fs.unwatchFile = jest.fn();
-      
-      mdtail.stopWatching();
-      
-      expect(fs.unwatchFile).toHaveBeenCalledWith('/test/file1.md');
-      expect(fs.unwatchFile).toHaveBeenCalledWith('/test/file2.md');
-    });
-  });
-
   describe('cleanup', () => {
     test('should reset terminal and stop watching', () => {
-      process.stdin.isTTY = true;
+      mdtail.files = ['/file1.md', '/file2.md'];
       mdtail.stopWatching = jest.fn();
       
       mdtail.cleanup();
@@ -268,28 +249,27 @@ describe('MdTail - Full Coverage', () => {
     });
   });
 
-  describe('clearScreen, hideCursor, showCursor', () => {
-    test('should clear screen', () => {
-      mdtail.clearScreen();
-      expect(consoleClearSpy).toHaveBeenCalled();
-    });
-
-    test('should hide cursor', () => {
-      mdtail.hideCursor();
-      expect(stdoutWriteSpy).toHaveBeenCalledWith('\x1B[?25l');
-    });
-
-    test('should show cursor', () => {
-      mdtail.showCursor();
-      expect(stdoutWriteSpy).toHaveBeenCalledWith('\x1B[?25h');
+  describe('stopWatching', () => {
+    test('should unwatch all files', () => {
+      mdtail.files = ['/file1.md', '/file2.md', '/file3.md'];
+      fs.unwatchFile = jest.fn();
+      
+      mdtail.stopWatching();
+      
+      expect(fs.unwatchFile).toHaveBeenCalledTimes(3);
+      expect(fs.unwatchFile).toHaveBeenCalledWith('/file1.md');
+      expect(fs.unwatchFile).toHaveBeenCalledWith('/file2.md');
+      expect(fs.unwatchFile).toHaveBeenCalledWith('/file3.md');
     });
   });
 
   describe('run', () => {
     test('should show help and exit', () => {
+      mdtail.getHelpText = jest.fn(() => 'Help text');
+      
       mdtail.run(['--help']);
       
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('mdtail - Terminal'));
+      expect(consoleLogSpy).toHaveBeenCalledWith('Help text');
       expect(processExitSpy).toHaveBeenCalledWith(0);
     });
 
@@ -320,13 +300,15 @@ describe('MdTail - Full Coverage', () => {
       mdtail.cleanup = jest.fn();
       
       let sigintHandler;
-      process.on = jest.fn((event, handler) => {
-        if (event === 'SIGINT') {
+      process.on = jest.fn((signal, handler) => {
+        if (signal === 'SIGINT') {
           sigintHandler = handler;
         }
       });
       
       mdtail.run(['README.md']);
+      
+      // Trigger SIGINT
       sigintHandler();
       
       expect(mdtail.cleanup).toHaveBeenCalled();

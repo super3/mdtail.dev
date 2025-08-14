@@ -1,45 +1,41 @@
-# mdtail.dev
-
-A simple terminal app that displays and live-refreshes markdown files.
-
-## Current Features
-- [x] Display markdown files in terminal
-- [x] Live refresh when file changes
-- [x] Clear screen on updates
-- [x] Formatted output with borders
-- [x] Graceful exit with Ctrl+C
-- [x] Full terminal width borders
-- [x] Hidden cursor for cleaner display
-- [x] Support for multiple markdown files with tabs
-- [x] Arrow key navigation between tabs (← →)
-- [x] Global CLI installation with npm link
-- [x] Wildcard support (*.md)
-- [x] Help system (--help)
-- [x] Default to TODO.md when no files specified
-
-## Testing & Quality
-- [x] Comprehensive test suite with Jest
-- [x] 100% code coverage (statements, branches, functions, lines)
-- [x] 61 unit tests covering all functionality
-- [x] Modular architecture (lib/mdtail.js)
-- [x] GitHub Actions CI/CD pipeline
-- [x] Automated testing on push and PRs
-- [x] Coverage reporting with Coveralls integration
-
 ## Code Refactoring
-- [ ] Test consolidation - Merge 5 test files into 2-3 focused files
-- [ ] Extract display logic into separate Display class
-- [ ] Separate file management into FileManager class
-- [ ] Create configuration object for settings
-- [ ] Convert to ES6 modules (import/export)
-- [ ] Use async/await for file operations
-- [ ] Replace fs.watchFile with fs.watch or chokidar
-- [ ] Simplify display with single render() method
-- [ ] Extract ANSI codes to constants
-- [ ] Add custom error classes
-- [ ] Add chalk for terminal colors
-- [ ] Consider blessed/ink for richer TUI
-- [ ] Add commander for robust CLI parsing
+
+### Test Consolidation (Maintain 100% Coverage)
+- [x] Merge 5 test files (900+ lines) into 3 focused files
+- [x] `mdtail.test.js` - Core functionality and unit tests (290 lines)
+- [x] `mdtail.integration.test.js` - Full flow and integration tests (317 lines)
+- [x] `mdtail.edge.test.js` - Edge cases and branch coverage scenarios (247 lines)
+- [x] Remove redundant tests while maintaining 100% coverage
+- [x] Consolidate mock setup and teardown logic
+
+### Extract Display Logic (~80-100 lines)
+- [ ] Create `lib/display.js` module with Display class
+- [ ] Move `formatContent()`, `renderTabs()`, `showNavigation()` methods
+- [ ] Consolidate console.log calls into single `render()` method
+- [ ] Extract ANSI escape codes to constants (HIDE_CURSOR, SHOW_CURSOR, etc.)
+
+### Separate File Management (~90-110 lines)
+- [ ] Create `lib/fileManager.js` module with FileManager class
+- [ ] Move `expandFiles()`, `validateFiles()`, `startWatching()`, `stopWatching()`
+- [ ] Implement better file validation with custom error messages
+- [ ] Replace `fs.watchFile` with `fs.watch` or chokidar for better performance
+
+### Modern JavaScript
+- [ ] Convert from CommonJS to ES6 modules (import/export)
+- [ ] Use async/await for all file operations instead of sync methods
+- [ ] Use template literals for multi-line string formatting
+- [ ] Add proper TypeScript definitions
+
+### Improved Error Handling
+- [ ] Create custom error classes (FileNotFoundError, InvalidMarkdownError)
+- [ ] Implement graceful degradation for missing terminal features
+- [ ] Better error messages with suggestions for fixes
+
+### Enhanced CLI & Display
+- [ ] Add chalk library for colored output
+- [ ] Consider blessed or ink for richer TUI with mouse support
+- [ ] Add commander.js for robust CLI argument parsing
+- [ ] Support for themes and color customization
 
 ## Next Steps
 - [ ] Publish to npm registry
