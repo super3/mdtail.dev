@@ -4,13 +4,13 @@ A simple terminal app that displays and live-refreshes markdown files.
 
 ## Features
 
-- 📝 Display markdown files in terminal with formatted output
-- 🔄 Live refresh when file changes (100ms polling)
-- 🎨 Clean bordered display
-- 🖥️ Full terminal width support
-- 👻 Hidden cursor for distraction-free viewing
-- ⌨️ Arrow key navigation for switching between multiple files
-- ⚡ Zero dependencies - pure Node.js
+- 📝  Display markdown files in terminal with formatted output
+- 🔄  Live refresh when file changes (100ms polling)
+- 🎨  Clean bordered display
+- 🖥   Full terminal width support
+- 👻  Hidden cursor for distraction-free viewing
+- ⌨   Arrow key navigation for switching between multiple files
+- ⚡  Zero dependencies - pure Node.js
 
 ## Installation
 
