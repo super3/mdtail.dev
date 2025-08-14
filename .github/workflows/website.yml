@@ -134,8 +134,8 @@ jobs:
           EOF
 
           # Convert README.md to HTML (skip the title and first badges since we have custom hero)
-          npm install -g marked
-          tail -n +9 README.md | marked >> _site/index.html
+          npm install marked
+          tail -n +9 README.md | npx marked >> _site/index.html
 
           cat >> _site/index.html << 'EOF'
               </article>
